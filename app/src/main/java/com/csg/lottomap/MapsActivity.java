@@ -59,6 +59,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // 진짜 위치 정보
                 for (Location location : locationResult.getLocations()) {
                     LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                    // 마커 생성
+                    MarkerOptions markerOptions = new MarkerOptions();
+
+                    markerOptions.position(currentLocation);
+
+                    markerOptions.title("현재위치");
+
+                    mMap.addMarker(markerOptions);
+
+                    //
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15.0f));
                     Toast.makeText(MapsActivity.this, "위치 갱신됨", Toast.LENGTH_SHORT).show();
                 }
@@ -86,7 +96,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 버튼 줌되는 거
         UiSettings mapUiSettings = mMap.getUiSettings();
         mapUiSettings.setZoomControlsEnabled(true);
-        mapUiSettings.setMapToolbarEnabled(true);
+//        이거는 안되나?
+        mapUiSettings.setMapToolbarEnabled(false);
 
 
 

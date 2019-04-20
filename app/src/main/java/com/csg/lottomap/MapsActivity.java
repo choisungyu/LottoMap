@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.provider.Settings;
@@ -28,7 +30,11 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener, GoogleMap.OnMapClickListener {
 
     private static final int MY_PERMISSIONS_REQUEST_FINE_LOCATION = 1000;
     private GoogleMap mMap;
@@ -36,7 +42,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private LocationCallback mLocationCallback;
     private LocationRequest locationRequest;
-
 
 
     @Override
@@ -51,6 +56,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         mLocationCallback = new LocationCallback() {
+
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) {
@@ -59,13 +65,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // 진짜 위치 정보
                 for (Location location : locationResult.getLocations()) {
                     LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
                     // 마커 생성
                     MarkerOptions markerOptions = new MarkerOptions();
-
                     markerOptions.position(currentLocation);
-
                     markerOptions.title("현재위치");
-
                     mMap.addMarker(markerOptions);
 
                     //
@@ -92,13 +96,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
+        mMap.setOnMapClickListener(this);
 
         // 버튼 줌되는 거
         UiSettings mapUiSettings = mMap.getUiSettings();
         mapUiSettings.setZoomControlsEnabled(true);
 //        이거는 안되나?
         mapUiSettings.setMapToolbarEnabled(false);
-
 
 
         // 권한체크 승인 안된것
@@ -140,6 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 승인
         // 초기화 위치 위경도
 //        LatLng sydney = new LatLng(-34, 151);
+        // 계속 마커 추가시키는거
 //        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
 //        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney, 10.0f));
 
@@ -185,7 +190,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .show();
 
                 }
-                return;
             }
 
             // other 'case' lines to check for other
@@ -236,5 +240,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMyLocationClick(@NonNull Location location) {
         Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
 
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        Geocoder geocoder;
+        List<Address> addresses;
+        geocoder = new Geocoder(MapsActivity.this, Locale.getDefault());
+
+        try {
+            addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            String address = addresses.get(0).getAddressLine(0);
+
+            mMap.addMarker(new MarkerOptions().position(latLng).title(address));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
